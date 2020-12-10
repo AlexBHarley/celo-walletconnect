@@ -427,7 +427,7 @@ class App extends React.Component<any, any> {
 
       // sign typed data
       const result = await connector.signTypedData(msgParams);
-
+      console.log(">>>", result, chainId);
       // verify signature
       const hash = hashTypedDataMessage(message);
       const valid = await verifySignature(address, result, hash, chainId);

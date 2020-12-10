@@ -161,8 +161,26 @@ export function hashTypedDataMessage(msg: string): string {
 }
 
 export function recoverPublicKey(sig: string, hash: string): string {
-  const params = ethUtil.fromRpcSig(sig);
-  const result = ethUtil.ecrecover(ethUtil.toBuffer(hash), params.v, params.r, params.s);
+  // const params = ethUtil.fromRpcSig(sig);
+  function parseSignatureAsVrs(signature: string) {
+    let v: number = parseInt(signature.slice(0, 2), 16);
+    const r: string = `0x${signature.slice(2, 66)}`;
+    const s: string = `0x${signature.slice(66, 130)}`;
+    console.log(v);
+    if (v < 27) {
+      v += 27;
+    }
+    return { v, r, s };
+  }
+  const params = parseSignatureAsVrs(sig.slice(2));
+  console.log(params);
+  const result = ethUtil.ecrecover(
+    ethUtil.toBuffer(hash),
+    params.v,
+    Buffer.from(params.r.slice(2), "hex"),
+    Buffer.from(params.s.slice(2), "hex"),
+  );
+  console.log(result);
   const signer = ethUtil.bufferToHex(ethUtil.publicToAddress(result));
   return signer;
 }
@@ -186,10 +204,13 @@ export async function verifySignature(
   chainId: number,
 ): Promise<boolean> {
   const rpcUrl = getChainData(chainId).rpc_url;
+  console.log(">>>", rpcUrl);
   const provider = new providers.JsonRpcProvider(rpcUrl);
   const bytecode = await provider.getCode(address);
   if (!bytecode || bytecode === "0x" || bytecode === "0x0" || bytecode === "0x00") {
     const signer = recoverPublicKey(sig, hash);
+    console.log("recovered signer", signer);
+    console.log("expected signer", address);
     return signer.toLowerCase() === address.toLowerCase();
   } else {
     return eip1271.isValidSignature(address, sig, hash, provider);
