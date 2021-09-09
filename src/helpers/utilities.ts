@@ -135,7 +135,7 @@ export function encodePersonalMessage(msg: string): string {
   return ethUtil.bufferToHex(buf);
 }
 
-export function hashPersonalMessage(msg: string): string {
+export function hashMessage(msg: string): string {
   const data = encodePersonalMessage(msg);
   const buf = ethUtil.toBuffer(data);
   const hash = ethUtil.keccak256(buf);
@@ -143,12 +143,11 @@ export function hashPersonalMessage(msg: string): string {
 }
 
 export function encodeTypedDataMessage(msg: string): string {
-  const useV4 = true;
   const data = TypedDataUtils.sanitizeData(JSON.parse(msg));
   const buf = Buffer.concat([
     Buffer.from("1901", "hex"),
-    TypedDataUtils.hashStruct("EIP712Domain", data.domain, data.types, useV4),
-    TypedDataUtils.hashStruct(data.primaryType as string, data.message, data.types, useV4),
+    TypedDataUtils.hashStruct("EIP712Domain", data.domain, data.types),
+    TypedDataUtils.hashStruct(data.primaryType as string, data.message, data.types),
   ]);
   return ethUtil.bufferToHex(buf);
 }
@@ -184,16 +183,22 @@ export function recoverPublicKey(sig: string, hash: string): string {
   const signer = ethUtil.bufferToHex(ethUtil.publicToAddress(result));
   return signer;
 }
+export function recoverAddress(sig: string, hash: string): string {
+  const params = ethUtil.fromRpcSig(sig);
+  const result = ethUtil.ecrecover(ethUtil.toBuffer(hash), params.v, params.r, params.s);
+  const signer = ethUtil.bufferToHex(ethUtil.publicToAddress(result));
+  return signer;
+}
 
-export function recoverPersonalSignature(sig: string, msg: string): string {
-  const hash = hashPersonalMessage(msg);
-  const signer = recoverPublicKey(sig, hash);
+export function recoverMessageSignature(sig: string, msg: string): string {
+  const hash = hashMessage(msg);
+  const signer = recoverAddress(sig, hash);
   return signer;
 }
 
 export function recoverTypedMessage(sig: string, msg: string): string {
   const hash = hashTypedDataMessage(msg);
-  const signer = recoverPublicKey(sig, hash);
+  const signer = recoverAddress(sig, hash);
   return signer;
 }
 
