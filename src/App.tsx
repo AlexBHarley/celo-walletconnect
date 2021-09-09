@@ -11,7 +11,7 @@ import Modal from "./components/Modal";
 import Header from "./components/Header";
 import Loader from "./components/Loader";
 import { fonts } from "./styles";
-import { apiGetAccountAssets, apiGetGasPrices, apiGetAccountNonce } from "./helpers/api";
+import { apiGetAccountAssets, apiGetGasPrices } from "./helpers/api";
 import {
   sanitizeHex,
   verifySignature,
@@ -162,7 +162,7 @@ class App extends React.Component<any, any> {
 
   public connect = async () => {
     // bridge url
-    const bridge = "https://bridge.walletconnect.org";
+    const bridge = "https://5.bridge.walletconnect.org";
 
     // create new connector
     const connector = new WalletConnect({ bridge, qrcodeModal: QRCodeModal });
@@ -282,7 +282,7 @@ class App extends React.Component<any, any> {
   public toggleModal = () => this.setState({ showModal: !this.state.showModal });
 
   public testSendTransaction = async () => {
-    const { connector, address, chainId } = this.state;
+    const { connector, address } = this.state;
 
     if (!connector) {
       return;
@@ -295,8 +295,8 @@ class App extends React.Component<any, any> {
     const to = address;
 
     // nonce
-    const _nonce = await apiGetAccountNonce(address, chainId);
-    const nonce = sanitizeHex(convertStringToHex(_nonce));
+    // const _nonce = await apiGetAccountNonce(address, chainId);
+    // const nonce = sanitizeHex(convertStringToHex(_nonce));
 
     // gasPrice
     const gasPrices = await apiGetGasPrices();
@@ -308,7 +308,7 @@ class App extends React.Component<any, any> {
     const gasLimit = sanitizeHex(convertStringToHex(_gasLimit));
 
     // value
-    const _value = 0;
+    const _value = 1;
     const value = sanitizeHex(convertStringToHex(_value));
 
     // data
@@ -318,7 +318,7 @@ class App extends React.Component<any, any> {
     const tx = {
       from,
       to,
-      nonce,
+      // nonce,
       gasPrice,
       gasLimit,
       value,
@@ -357,7 +357,7 @@ class App extends React.Component<any, any> {
   };
 
   public testSignMessage = async () => {
-    const { connector, address, chainId } = this.state;
+    const { connector, address } = this.state;
 
     if (!connector) {
       return;
@@ -381,10 +381,10 @@ class App extends React.Component<any, any> {
 
       // send message
       const result = await connector.signMessage(msgParams);
-
+      console.log("got back", result);
       // verify signature
       const hash = hashMessage(message);
-      const valid = await verifySignature(address, result, hash, chainId);
+      const valid = await verifySignature(address, result, hash);
 
       // format displayed result
       const formattedResult = {
@@ -407,7 +407,7 @@ class App extends React.Component<any, any> {
   };
 
   public testSignTypedData = async () => {
-    const { connector, address, chainId } = this.state;
+    const { connector, address } = this.state;
 
     if (!connector) {
       return;
@@ -427,10 +427,10 @@ class App extends React.Component<any, any> {
 
       // sign typed data
       const result = await connector.signTypedData(msgParams);
-      console.log(">>>", result, chainId);
+      console.log(">>>", result, 42220);
       // verify signature
       const hash = hashTypedDataMessage(message);
-      const valid = await verifySignature(address, result, hash, chainId);
+      const valid = await verifySignature(address, result, hash);
 
       // format displayed result
       const formattedResult = {

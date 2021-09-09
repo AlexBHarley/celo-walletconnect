@@ -1,10 +1,10 @@
-import { providers } from "ethers";
+// import { providers } from "ethers";
 import { convertUtf8ToHex } from "@walletconnect/utils";
 import { TypedDataUtils } from "eth-sig-util";
 import * as ethUtil from "ethereumjs-util";
 import { IChainData } from "./types";
 import { SUPPORTED_CHAINS } from "./chains";
-import { eip1271 } from "./eip1271";
+// import { eip1271 } from "./eip1271";
 
 export function capitalize(string: string): string {
   return string
@@ -160,26 +160,28 @@ export function hashTypedDataMessage(msg: string): string {
 }
 
 export function recoverPublicKey(sig: string, hash: string): string {
-  // const params = ethUtil.fromRpcSig(sig);
-  function parseSignatureAsVrs(signature: string) {
-    let v: number = parseInt(signature.slice(0, 2), 16);
-    const r: string = `0x${signature.slice(2, 66)}`;
-    const s: string = `0x${signature.slice(66, 130)}`;
-    console.log(v);
-    if (v < 27) {
-      v += 27;
-    }
-    return { v, r, s };
-  }
-  const params = parseSignatureAsVrs(sig.slice(2));
-  console.log(params);
+  const params = ethUtil.fromRpcSig(sig);
+  // function parseSignatureAsVrs(signature: string) {
+  //   let v: number = parseInt(signature.slice(0, 2), 16);
+  //   const r: string = `0x${signature.slice(2, 66)}`;
+  //   const s: string = `0x${signature.slice(66, 130)}`;
+  //   console.log(v);
+  //   if (v < 27) {
+  //     v += 27;
+  //   }
+  //   return { v, r, s };
+  // }
+  // const params = parseSignatureAsVrs(sig.slice(2));
+  console.log("params", params);
   const result = ethUtil.ecrecover(
     ethUtil.toBuffer(hash),
     params.v,
-    Buffer.from(params.r.slice(2), "hex"),
-    Buffer.from(params.s.slice(2), "hex"),
+    params.r,
+    params.s,
+    // Buffer.from(params.r.slice(2), "hex"),
+    // Buffer.from(params.s.slice(2), "hex"),
   );
-  console.log(result);
+  console.log(">>>", result);
   const signer = ethUtil.bufferToHex(ethUtil.publicToAddress(result));
   return signer;
 }
@@ -206,18 +208,15 @@ export async function verifySignature(
   address: string,
   sig: string,
   hash: string,
-  chainId: number,
 ): Promise<boolean> {
-  const rpcUrl = getChainData(chainId).rpc_url;
-  console.log(">>>", rpcUrl);
-  const provider = new providers.JsonRpcProvider(rpcUrl);
-  const bytecode = await provider.getCode(address);
-  if (!bytecode || bytecode === "0x" || bytecode === "0x0" || bytecode === "0x00") {
-    const signer = recoverPublicKey(sig, hash);
-    console.log("recovered signer", signer);
-    console.log("expected signer", address);
-    return signer.toLowerCase() === address.toLowerCase();
-  } else {
-    return eip1271.isValidSignature(address, sig, hash, provider);
-  }
+  // const provider = new providers.JsonRpcProvider(rpcUrl);
+  // const bytecode = await provider.getCode(address);
+  // if (!bytecode || bytecode === "0x" || bytecode === "0x0" || bytecode === "0x00") {
+  const signer = recoverPublicKey(sig, hash);
+  console.log("recovered signer", signer);
+  console.log("expected signer", address);
+  return signer.toLowerCase() === address.toLowerCase();
+  // } else {
+  //   return eip1271.isValidSignature(address, sig, hash, provider);
+  // }
 }
