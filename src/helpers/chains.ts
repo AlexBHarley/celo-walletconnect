@@ -178,6 +178,22 @@ export const SUPPORTED_CHAINS: IChainData[] = [
     },
   },
   {
+    name: "Celo Mainnet",
+    short_name: "celo",
+    chain: "celo",
+    network: "alfajores",
+    chain_id: 42220,
+    network_id: 42220,
+    rpc_url: "https://forno.celo.org",
+    native_currency: {
+      symbol: "CELO",
+      name: "CELO",
+      decimals: "18",
+      contractAddress: "",
+      balance: "",
+    },
+  },
+  {
     name: "Celo Alfajores",
     short_name: "celo",
     chain: "celo",
